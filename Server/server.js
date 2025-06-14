@@ -6,18 +6,18 @@ const cors = require("cors");
 
 const app = express();
 
-// Only allow requests from localhost:5173
 app.use(cors({
-  origin: 'http://localhost:5173',
+  origin: ['http://localhost:5173', 'https://your-vercel-url.vercel.app'], // replace with your frontend URL
 }));
 
 app.use(bodyParser.json());
 
-// Fix: Correct syntax for GET route
+// Test route
 app.get("/", (req, res) => {
   res.send("Hello, CodeBase!");
 });
 
+// Run C code
 app.post("/run", (req, res) => {
   const code = req.body.code;
   if (!code) {
@@ -26,14 +26,18 @@ app.post("/run", (req, res) => {
 
   fs.writeFileSync("main.c", code);
 
-  // Compile and execute C program on Windows
-  exec("gcc main.c -o main.exe && main.exe", (err, stdout, stderr) => {
+  exec("gcc main.c -o main && ./main", (err, stdout, stderr) => {
     if (err) {
       return res.json({ output: stderr || err.message });
     }
+
+    // Optional: clean up files to avoid buildup
+    fs.unlinkSync("main.c");
+    fs.unlinkSync("main");
+
     return res.json({ output: stdout });
   });
 });
 
-const PORT = 3001;
-app.listen(PORT, () => console.log(`Server running on http://localhost:${PORT}`));
+const PORT = process.env.PORT || 3001;
+app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
