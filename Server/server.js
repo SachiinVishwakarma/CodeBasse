@@ -7,7 +7,7 @@ const cors = require("cors");
 const app = express();
 
 app.use(cors({
-  origin: ['http://localhost:5173', 'https://codebasse.vercel.app/'], // replace with your frontend URL
+  origin: ['http://localhost:5173', 'https://codebasse.vercel.app'], // replace with your frontend URL
 }));
 
 app.use(bodyParser.json());
