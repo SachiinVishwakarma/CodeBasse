@@ -13,17 +13,27 @@ app.use(cors({
 
 app.use(bodyParser.json());
 
+// Fix: Correct syntax for GET route
+app.get("/", (req, res) => {
+  res.send("Hello, CodeBase!");
+});
+
 app.post("/run", (req, res) => {
   const code = req.body.code;
+  if (!code) {
+    return res.status(400).json({ output: "No code provided" });
+  }
+
   fs.writeFileSync("main.c", code);
 
   // Compile and execute C program on Windows
   exec("gcc main.c -o main.exe && main.exe", (err, stdout, stderr) => {
-    if (err || stderr) {
+    if (err) {
       return res.json({ output: stderr || err.message });
     }
     return res.json({ output: stdout });
   });
 });
 
-app.listen(3001, () => console.log("Server running on http://localhost:3001"));
+const PORT = 3001;
+app.listen(PORT, () => console.log(`Server running on http://localhost:${PORT}`));
