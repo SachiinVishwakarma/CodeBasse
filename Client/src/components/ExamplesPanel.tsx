@@ -34,6 +34,28 @@ int main() {
 }`
   },
   {
+  id: 'sum',
+  title: 'Add Two Numbers',
+  description: 'Takes input of two numbers and displays their sum',
+  difficulty: 'Beginner',
+  category: 'Basics',
+  icon: <Zap className="h-4 w-4" />,
+  code: `#include <stdio.h>
+
+int main() {
+    int a, b, sum;
+
+    a=4;
+    b=4;
+
+    sum = a + b;
+
+    printf("Sum = %d\\n", sum);
+
+    return 0;
+}`
+},
+  {
     id: 'variables',
     title: 'Variables & Data Types',
     description: 'Learn about different data types in C',

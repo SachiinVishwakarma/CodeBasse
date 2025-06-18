@@ -18,6 +18,7 @@ function App() {
   const [hasError, setHasError] = useState<boolean>(false);
   const [showOutput, setShowOutput] = useState<boolean>(false);
   const [showExamples, setShowExamples] = useState<boolean>(false);
+  const [executionTime, setExecutionTime] = useState<number | undefined>(undefined);
 
   const handleRunCode = async () => {
     if (!code.trim()) {
@@ -42,6 +43,7 @@ function App() {
         /main\.c:\d+:\d+/.test(result.output);
 
       setOutput(result.output);
+      setExecutionTime(result.executionTime);
       setHasError(likelyHasError);
     } catch {
       setOutput('🚨 An unexpected error occurred while running your code.');
@@ -112,7 +114,7 @@ function App() {
             {/* Output */}
             <div className={`transition-all duration-500 ease-out transform ${showOutput ? 'opacity-100 translate-y-0 scale-100' : 'opacity-70 translate-y-4 scale-95'}`}>
               <div className="rounded-xl shadow-lg border dark:border-slate-700/50 bg-white/80 dark:bg-slate-900/80 backdrop-blur-sm overflow-hidden">
-                <OutputPanel output={output} isRunning={isRunning} hasError={hasError} />
+                <OutputPanel output={output} isRunning={isRunning} hasError={hasError} executionTime={executionTime} />
               </div>
             </div>
 
@@ -167,7 +169,7 @@ function App() {
 
               <div className={`flex-1 transition-all duration-500 ease-out transform ${showOutput ? 'opacity-100 translate-y-0 scale-100' : 'opacity-70 translate-y-4 scale-95'}`}>
                 <div className="h-full rounded-2xl shadow-xl border dark:border-slate-700/50 bg-white/80 dark:bg-slate-900/80 backdrop-blur-sm overflow-hidden">
-                  <OutputPanel output={output} isRunning={isRunning} hasError={hasError} />
+                  <OutputPanel output={output} isRunning={isRunning} hasError={hasError} executionTime={executionTime} />
                 </div>
               </div>
 
