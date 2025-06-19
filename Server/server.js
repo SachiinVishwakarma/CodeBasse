@@ -1,7 +1,7 @@
 const express = require("express");
 const bodyParser = require("body-parser");
 const fs = require("fs");
-const { exec, spawn } = require("child_process");
+const { exec } = require("child_process");
 const cors = require("cors");
 const os = require("os");
 
@@ -13,27 +13,26 @@ app.use(cors({
 
 app.use(bodyParser.json());
 
+app.get("/", (req, res) => {
+  res.send("Hello Code base");
+});
+
 app.post("/run", (req, res) => {
   const code = req.body.code;
-  const input = req.body.input || ""; // input string sent by frontend for scanf
+  const input = req.body.input || "";
 
   if (!code) {
     return res.status(400).json({ output: "No code provided", hasError: true });
   }
 
-  // Save code to file
   fs.writeFileSync("main.c", code);
 
   const isWindows = os.platform() === "win32";
-  const executableName = isWindows ? "main.exe" : "./main";
-  const compileCmd = isWindows
-    ? "gcc main.c -o main.exe && main.exe"
-    : "gcc main.c -o main && ./main";
+  const executable = isWindows ? "main.exe" : "./main";
+  const compileCmd = isWindows ? "gcc main.c -o main.exe" : "gcc main.c -o main";
 
-  // Step 1: Compile the code
   exec(compileCmd, (compileErr, _, compileStderr) => {
     if (compileErr) {
-      // Compilation failed
       fs.unlinkSync("main.c");
       return res.json({
         output: compileStderr || compileErr.message,
@@ -42,35 +41,13 @@ app.post("/run", (req, res) => {
       });
     }
 
-    // Step 2: Run the compiled program with input piped to stdin
+    const runCmd = isWindows ? `echo ${input} | ${executable}` : `echo \"${input}\" | ${executable}`;
     const start = Date.now();
 
-    const child = spawn(executableName, []);
-
-    let stdout = "";
-    let stderr = "";
-
-    child.stdout.on("data", (data) => {
-      stdout += data.toString();
-    });
-
-    child.stderr.on("data", (data) => {
-      stderr += data.toString();
-    });
-
-    child.on("error", (err) => {
-      return res.json({
-        output: err.message,
-        hasError: true,
-        executionTime: 0,
-      });
-    });
-
-    child.on("close", (code) => {
+    exec(runCmd, (runErr, stdout, stderr) => {
       const end = Date.now();
       const executionTime = end - start;
 
-      // Clean up files
       try {
         fs.unlinkSync("main.c");
         if (isWindows) fs.unlinkSync("main.exe");
@@ -79,9 +56,9 @@ app.post("/run", (req, res) => {
         console.warn("Cleanup failed:", cleanupErr.message);
       }
 
-      if (code !== 0) {
+      if (runErr) {
         return res.json({
-          output: stderr || `Process exited with code ${code}`,
+          output: stderr || runErr.message,
           hasError: true,
           executionTime,
         });
@@ -93,10 +70,6 @@ app.post("/run", (req, res) => {
         executionTime,
       });
     });
-
-    // Write input to the program's stdin and close stdin
-    child.stdin.write(input);
-    child.stdin.end();
   });
 });
 
